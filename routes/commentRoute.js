@@ -1,5 +1,5 @@
 const express = require('express');
-const { createComment } = require('../controllers/commentController');
+const { createComment, editComment, deleteComment } = require('../controllers/commentController');
 const { validateComment } = require('../middlewares/commentCheck');
 const { isAuth } = require('../middlewares/isAuth');
 const router = express.Router();
@@ -9,6 +9,8 @@ router
 .get((req, res) => {
     res.send('COMMENT PAGE!')
 })
-.post(isAuth, validateComment, createComment)
+.post(isAuth(['USER','ADMIN']), validateComment, createComment)
+.put(isAuth(['USER','ADMIN']), validateComment, editComment)
+.delete(isAuth(['USER','ADMIN']), deleteComment)
 
 module.exports = router;

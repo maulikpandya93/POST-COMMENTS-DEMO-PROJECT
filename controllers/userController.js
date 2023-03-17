@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 exports.signup = async (req, res) => {
     
-    // try {
+    try {
         var {name, email, password, role} = req.body;
         if(role == undefined){
             role = 'user';
@@ -53,13 +53,13 @@ exports.signup = async (req, res) => {
                 })
             }
         }
-    // } catch (error) {
-    //     console.log(error);
-    //     res.status(404).json({
-    //         message : 'Bad Request',
-    //         error : 'Something Went Wrong!'
-    //     })
-    // }
+    } catch (error) {
+        console.log(error);
+        res.status(404).json({
+            message : 'Bad Request',
+            error : 'Something Went Wrong!'
+        })
+    }
 }
 
 

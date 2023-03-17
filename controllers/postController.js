@@ -10,39 +10,31 @@ exports.createPost = async (req, res) => {
     try {
         const { title, caption } = req.body;
         // console.log(req.user);
-
-        
-
-        if (found) {
-            res.status(404).json({
-                message: 'Post already created!'
+        const createdPost = await postModel.create({
+            title: title,
+            caption: caption,
+            user_id: req.user.id
+        })
+        if (createdPost) {
+            console.log('POST CREATED!');
+            res.status(200).json({
+                message: 'POST CREATED SUCCESSFULLY',
+                post: createdPost
             })
         } else {
-            const createdPost = await postModel.create({
-                title: title,
-                caption: caption,
-                user_id: req.user.id
+            console.log('POST NOT CREATED');
+            res.status(404).json({
+                message: 'Bad Request',
+                error: 'Post Not Created'
             })
-            if (createdPost) {
-                console.log('POST CREATED!');
-                res.status(200).json({
-                    message: 'POST CREATED SUCCESSFULLY',
-                    post : createdPost
-                })
-            } else {
-                console.log('POST NOT CREATED');
-                res.status(404).json({
-                    message: 'Bad Request',
-                    error: 'Post Not Created'
-                })
-            }
         }
-    } catch (error) {
+    }catch (error) {
         res.status(404).json({
-            message: 'Invalid User!'
+            message: 'Something Went Wrong!'
         })
     }
-}
+} 
+
 
 
 exports.showAllPosts = async (req, res) => {
@@ -66,13 +58,13 @@ exports.showAllPosts = async (req, res) => {
             }
         });
         if (allData.length == 0) {
-            res.status(404).json({
+            return res.status(404).json({
                 message: 'Bad Request',
                 error: 'NO DATA AVAILABLE'
             })
         }
         if (allData) {
-            res.status(200).json(allData)
+            return res.status(200).json(allData)
         }
     } catch (error) {
         res.status(300).json({
@@ -123,36 +115,36 @@ exports.showUsersAllPosts = async (req, res) => {
 
 exports.getPostById = async (req, res) => {
     try {
-    const id = req.params.id;
-    const found = await postModel.findOne({
-        where: {
-            id: id
-        },
-        include: [{
-            model: User, as: 'userDetails',
-            attributes: {
-                exclude: [
-                    'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt', 'password'
-                ]
+        const id = req.params.id;
+        const found = await postModel.findOne({
+            where: {
+                id: id
+            },
+            include: [{
+                model: User, as: 'userDetails',
+                attributes: {
+                    exclude: [
+                        'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt', 'password'
+                    ]
+                }
+            }]
+        })
+        // console.log(found);
+        if (found) {
+            if (found.isDeleted == 1) {
+                res.status(404).json({
+                    message: 'Bad Request',
+                    error: 'Post with given id is deleted!'
+                })
+            } else {
+                res.status(200).json(found)
             }
-        }]
-    })
-    // console.log(found);
-    if (found) {
-        if (found.isDeleted == 1) {
+        } else {
             res.status(404).json({
                 message: 'Bad Request',
-                error: 'Post with given id is deleted!'
+                error: 'NO POST WITH GIVEN ID'
             })
-        } else {
-            res.status(200).json(found)
         }
-    } else {
-        res.status(404).json({
-            message: 'Bad Request',
-            error: 'NO POST WITH GIVEN ID'
-        })
-    }
     } catch (error) {
         res.status(404).json({
             message: 'Bad Request',
@@ -175,10 +167,10 @@ exports.editPost = async (req, res) => {
                     where: { id: id }
                 })
                 if (updatedPost) {
-                    // const findUpdatedPost = await postModel.findOne({ where: { id: id } })
+                    const findUpdatedPost = await postModel.findOne({ where: { id: id } })
                     res.status(200).json({
                         message: "POST UPDATED SUCCESSFULLY",
-                        updatedPost : updatedPost
+                        updatedPost: findUpdatedPost
                     })
                 } else {
                     res.status(404).json({
@@ -192,10 +184,10 @@ exports.editPost = async (req, res) => {
                         where: { id: id }
                     })
                     if (updatedPost) {
-                        // const findUpdatedPost = await postModel.findOne({ where: { id: id } })
+                        const findUpdatedPost = await postModel.findOne({ where: { id: id } })
                         res.status(200).json({
                             message: "POST UPDATED SUCCESSFULLY",
-                            updatedPost : updatedPost
+                            updatedPost: findUpdatedPost
                         })
                     } else {
                         res.status(404).json({
