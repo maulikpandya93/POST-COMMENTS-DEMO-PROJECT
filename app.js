@@ -13,6 +13,7 @@ app.get('/', (req, res) => {
 
 app.use("/user", require("./routes/userRoute"));
 app.use("/post", require("./routes/postRoute"));
+app.use("/comment", require("./routes/commentRoute"));
 
 app.get('/*', (req, res) => {
     res.json({

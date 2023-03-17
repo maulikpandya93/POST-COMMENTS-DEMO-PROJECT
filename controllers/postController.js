@@ -11,13 +11,7 @@ exports.createPost = async (req, res) => {
         const { title, caption } = req.body;
         // console.log(req.user);
 
-        const found = await postModel.findOne({
-            where: {
-                id: req.user.id,
-                title: title,
-                caption: caption
-            }
-        })
+        
 
         if (found) {
             res.status(404).json({
@@ -32,7 +26,8 @@ exports.createPost = async (req, res) => {
             if (createdPost) {
                 console.log('POST CREATED!');
                 res.status(200).json({
-                    message: 'POST CREATED SUCCESSFULLY'
+                    message: 'POST CREATED SUCCESSFULLY',
+                    post : createdPost
                 })
             } else {
                 console.log('POST NOT CREATED');
@@ -182,7 +177,8 @@ exports.editPost = async (req, res) => {
                 if (updatedPost) {
                     // const findUpdatedPost = await postModel.findOne({ where: { id: id } })
                     res.status(200).json({
-                        message: "POST UPDATED SUCCESSFULLY"
+                        message: "POST UPDATED SUCCESSFULLY",
+                        updatedPost : updatedPost
                     })
                 } else {
                     res.status(404).json({
@@ -198,7 +194,8 @@ exports.editPost = async (req, res) => {
                     if (updatedPost) {
                         // const findUpdatedPost = await postModel.findOne({ where: { id: id } })
                         res.status(200).json({
-                            message: "POST UPDATED SUCCESSFULLY"
+                            message: "POST UPDATED SUCCESSFULLY",
+                            updatedPost : updatedPost
                         })
                     } else {
                         res.status(404).json({

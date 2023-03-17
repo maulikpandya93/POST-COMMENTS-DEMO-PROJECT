@@ -18,7 +18,7 @@ exports.validateLogin = async (req, res, next) => {
     } catch (error) {
 
         error = error.details.map(err => {
-            return err.message
+            return err.message.replaceAll('"',"")
         })
 
         res.status(404).json({

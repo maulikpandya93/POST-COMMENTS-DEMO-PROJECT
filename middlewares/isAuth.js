@@ -3,8 +3,9 @@ const jwt = require('jsonwebtoken');
 const errorMessages = require('../validations/errorMessages');
 require('dotenv').config();
 
-exports.isAuth=(roles) => async (req, res, next) => {
+exports.isAuth = (roles) => async (req, res, next) => {
     try {
+        console.log('idhar hu me');
         // console.log('auth');
         const token = req.headers.authorization.split(" ")[1];
         // console.log(verifyUser);

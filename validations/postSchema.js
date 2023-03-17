@@ -3,8 +3,8 @@ const Joi = require('joi');
 
 
 const postSchema = Joi.object({
-    title : Joi.string().required(),
-    caption : Joi.string().required()
+    title : Joi.string().required().max(25),
+    caption : Joi.string().required().max(150)
 })
 
 

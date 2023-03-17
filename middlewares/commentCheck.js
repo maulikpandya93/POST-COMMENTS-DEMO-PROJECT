@@ -1,14 +1,15 @@
-const postSchema = require('../validations/postSchema')
-const errorMessages = require('../validations/errorMessages')
+const errorMessages = require("../validations/errorMessages");
+const commentSchema = require("../validations/commentSchema");
 
-exports.validatePost = async(req, res, next) => {
-    
+
+exports.validateComment = async(req, res, next) => {
+    // console.log('pohocha ');
     try {
         const options = {
             abortEarly : false,
             messages : errorMessages
         }        
-        const isValidate = await postSchema.validateAsync(req.body, options);
+        const isValidate = await commentSchema.validateAsync(req.body, options);
         if (isValidate) {
             next();
         }
