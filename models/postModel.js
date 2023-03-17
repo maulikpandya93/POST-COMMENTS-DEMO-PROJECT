@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const {sequelize} = require('../config/db_connect');
-
+const User = require('./userModel')
 
 const post = sequelize.define('posts',{
     title : {
@@ -28,6 +28,7 @@ const post = sequelize.define('posts',{
     }
 });
 
-post.sync({force : false})
+
+// post.sync({force : true})
 
 module.exports = post;

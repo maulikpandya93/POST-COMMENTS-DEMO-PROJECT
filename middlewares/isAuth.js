@@ -12,6 +12,7 @@ exports.isAuth=(roles) => async (req, res, next) => {
         
         const verifyUser = jwt.verify(token, process.env.SECRET_KEY)
         if(verifyUser){
+            verifyUser.role = verifyUser.role.toUpperCase();
             if(roles.includes(verifyUser.role)){
                 req.user = verifyUser  
                 next();

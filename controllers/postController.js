@@ -2,6 +2,7 @@ const { login } = require("./userController")
 const postModel = require("../models/postModel")
 const errorMessages = require("../validations/errorMessages");
 const { all } = require("../routes/postRoute");
+const User = require("../models/userModel");
 
 
 exports.createPost = async (req, res) => {
@@ -43,7 +44,7 @@ exports.createPost = async (req, res) => {
         }
     } catch (error) {
         res.status(404).json({
-            message: 'Something Went Wrong!'
+            message: 'Invalid User!'
         })
     }
 }
@@ -55,6 +56,14 @@ exports.showAllPosts = async (req, res) => {
             where: {
                 isDeleted: false
             },
+            include: [{
+                model: User, as: 'userDetails',
+                attributes: {
+                    exclude: [
+                        'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt', 'password'
+                    ]
+                }
+            }],
             attributes: {
                 exclude: [
                     'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt'
@@ -85,9 +94,17 @@ exports.showUsersAllPosts = async (req, res) => {
                 user_id: req.user.id,
                 isDeleted: false
             },
+            include: [{
+                model: User, as: 'userDetails',
+                attributes: {
+                    exclude: [
+                        'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt', 'password'
+                    ]
+                }
+            }],
             attributes: {
                 exclude: [
-                    'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt'
+                    'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt', 'user_id'
                 ]
             }
         });
@@ -102,8 +119,8 @@ exports.showUsersAllPosts = async (req, res) => {
         }
     } catch (error) {
         res.status(300).json({
-            error: '404',
-            message: "Bad Request"
+            message: "Bad Request",
+            error: `Can't get users all posts!`
         })
     }
 }
@@ -111,26 +128,36 @@ exports.showUsersAllPosts = async (req, res) => {
 
 exports.getPostById = async (req, res) => {
     try {
-        const id = req.params.id;
-        const found = await postModel.findOne({ where:{ 
+    const id = req.params.id;
+    const found = await postModel.findOne({
+        where: {
             id: id
-         } })
-        // console.log(found);
-        if (found) {
-            if (found.isDeleted == 1) {
-                res.status(404).json({
-                    message: 'Bad Request',
-                    error: 'Post with given id is deleted!'
-                })
-            } else {
-                res.status(200).json(found)
+        },
+        include: [{
+            model: User, as: 'userDetails',
+            attributes: {
+                exclude: [
+                    'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt', 'password'
+                ]
             }
-        } else {
+        }]
+    })
+    // console.log(found);
+    if (found) {
+        if (found.isDeleted == 1) {
             res.status(404).json({
                 message: 'Bad Request',
-                error: 'NO POST WITH GIVEN ID'
+                error: 'Post with given id is deleted!'
             })
+        } else {
+            res.status(200).json(found)
         }
+    } else {
+        res.status(404).json({
+            message: 'Bad Request',
+            error: 'NO POST WITH GIVEN ID'
+        })
+    }
     } catch (error) {
         res.status(404).json({
             message: 'Bad Request',
@@ -148,7 +175,7 @@ exports.editPost = async (req, res) => {
         // const role = req.user.role
         const found = await postModel.findOne({ where: { id: id } })
         if (found) {
-            if(role == 'ADMIN'){
+            if (role == 'ADMIN') {
                 const updatedPost = await postModel.update(req.body, {
                     where: { id: id }
                 })
@@ -163,7 +190,7 @@ exports.editPost = async (req, res) => {
                     })
                 }
             }
-            if(role == 'USER'){
+            if (role == 'USER') {
                 if (found.user_id == req.user.id) {
                     const updatedPost = await postModel.update(req.body, {
                         where: { id: id }
@@ -194,8 +221,8 @@ exports.editPost = async (req, res) => {
     } catch (error) {
         // console.log(error);
         res.status(404).json({
-            message : 'Bad Request',
-            error : 'Something Went Wrong!'
+            message: 'Bad Request',
+            error: 'Something Went Wrong!'
         })
     }
 
