@@ -2,14 +2,16 @@ const {signupSchema} = require('../validations/signupSchema')
 const errorMessages = require('../validations/errorMessages')
 
 exports.validateUser = async(req, res, next) => {
-    
+    // console.log('idhr');
     try {
         const options = {
             abortEarly : false,
             messages : errorMessages
-        }        
+        }       
+        // console.log(req.body);
         const isValidate = await signupSchema.validateAsync(req.body, options);
         if (isValidate) {
+            // console.log('idhr');
             next();
         }
         

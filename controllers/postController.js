@@ -1,8 +1,5 @@
-const { login } = require("./userController")
 const postModel = require("../models/postModel")
-const errorMessages = require("../validations/errorMessages");
-const { all } = require("../routes/postRoute");
-const User = require("../models/userModel");
+const comment = require("../models/commentModel");
 
 
 exports.createPost = async (req, res) => {
@@ -35,125 +32,6 @@ exports.createPost = async (req, res) => {
     }
 } 
 
-
-
-exports.showAllPosts = async (req, res) => {
-    try {
-        const allData = await postModel.findAll({
-            where: {
-                isDeleted: false
-            },
-            include: [{
-                model: User, as: 'userDetails',
-                attributes: {
-                    exclude: [
-                        'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt', 'password'
-                    ]
-                }
-            }],
-            attributes: {
-                exclude: [
-                    'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt'
-                ]
-            }
-        });
-        if (allData.length == 0) {
-            return res.status(404).json({
-                message: 'Bad Request',
-                error: 'NO DATA AVAILABLE'
-            })
-        }
-        if (allData) {
-            return res.status(200).json(allData)
-        }
-    } catch (error) {
-        res.status(300).json({
-            error: '404',
-            message: "Bad Request"
-        })
-    }
-}
-
-exports.showUsersAllPosts = async (req, res) => {
-    try {
-        const allData = await postModel.findAll({
-            where: {
-                user_id: req.user.id,
-                isDeleted: false
-            },
-            include: [{
-                model: User, as: 'userDetails',
-                attributes: {
-                    exclude: [
-                        'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt', 'password'
-                    ]
-                }
-            }],
-            attributes: {
-                exclude: [
-                    'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt', 'user_id'
-                ]
-            }
-        });
-        if (allData.length == 0) {
-            res.status(404).json({
-                message: 'Bad Request',
-                error: 'USER HAS NOT CREATED ANY POST!'
-            })
-        }
-        if (allData) {
-            res.status(200).json(allData)
-        }
-    } catch (error) {
-        res.status(300).json({
-            message: "Bad Request",
-            error: `Can't get users all posts!`
-        })
-    }
-}
-
-
-exports.getPostById = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const found = await postModel.findOne({
-            where: {
-                id: id
-            },
-            include: [{
-                model: User, as: 'userDetails',
-                attributes: {
-                    exclude: [
-                        'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt', 'password'
-                    ]
-                }
-            }]
-        })
-        // console.log(found);
-        if (found) {
-            if (found.isDeleted == 1) {
-                res.status(404).json({
-                    message: 'Bad Request',
-                    error: 'Post with given id is deleted!'
-                })
-            } else {
-                res.status(200).json(found)
-            }
-        } else {
-            res.status(404).json({
-                message: 'Bad Request',
-                error: 'NO POST WITH GIVEN ID'
-            })
-        }
-    } catch (error) {
-        res.status(404).json({
-            message: 'Bad Request',
-            error: 'SOMETHING WENT WRONG!'
-        })
-    }
-}
-
-
 exports.editPost = async (req, res) => {
 
     try {
@@ -162,7 +40,7 @@ exports.editPost = async (req, res) => {
         // const role = req.user.role
         const found = await postModel.findOne({ where: { id: id } })
         if (found) {
-            if (role == 'ADMIN') {
+            if (role == 'admin') {
                 const updatedPost = await postModel.update(req.body, {
                     where: { id: id }
                 })
@@ -178,8 +56,10 @@ exports.editPost = async (req, res) => {
                     })
                 }
             }
-            if (role == 'USER') {
+            if (role == 'user') {
+                console.log(found);
                 if (found.user_id == req.user.id) {
+
                     const updatedPost = await postModel.update(req.body, {
                         where: { id: id }
                     })
@@ -217,36 +97,56 @@ exports.editPost = async (req, res) => {
 
 }
 
-
 exports.deletePost = async (req, res) => {
 
     try {
-        // console.log(req.user);
         const { role, id } = req.user;
         const post_id = req.params.id
         const foundPost = await postModel.findOne({
             where: {
                 id: post_id
-            }
+            },
+            include: [{
+                model: comment, as: 'commentDetails',
+                attributes: {
+                    exclude: [
+                        'createdAt', 'updatedAt'
+                    ]
+                }
+            }]
         })
         if (foundPost) {
-            if (role == 'ADMIN') {
+            if (role == 'admin') {
                 if (foundPost.isDeleted == 1) {
                     res.status(404).json({
                         message: 'Bad Request',
                         error: 'Post is already deleted!'
                     })
                 } else {
-                    foundPost.isDeleted = true;
-                    foundPost.deletedAt = new Date();
-                    foundPost.deletedBy = role;
-                    await foundPost.save();
+                    const deletePost = await postModel.update({
+                        isDeleted : true,
+                        deletedAt : new Date(),
+                        deletedBy : role   
+                    }, {
+                        where: {id : post_id}
+                    })
+                    
+                    const deleteComment = await comment.update({
+                        isDeleted : true,
+                        deletedAt : new Date(),
+                        deletedBy : role
+                    }, {
+                        where : {post_id : post_id}
+                    })
+
+                    const deletedPost = await postModel.findOne({where : {id : post_id}})
                     res.status(200).json({
-                        message: 'POST DELETED SUCESSFULLY'
+                        message: 'POST DELETED SUCESSFULLY',
+                        deletedPost : deletedPost
                     })
                 }
             }
-            if (role == 'USER') {
+            if (role == 'user') {
                 if (foundPost.user_id == id) {
 
                     if (foundPost.isDeleted == 1) {
@@ -255,12 +155,26 @@ exports.deletePost = async (req, res) => {
                             error: 'Post is already deleted!'
                         })
                     } else {
-                        foundPost.isDeleted = true;
-                        foundPost.deletedAt = new Date();
-                        foundPost.deletedBy = role;
-                        await foundPost.save();
+                        const deletePost = await postModel.update({
+                            isDeleted : true,
+                            deletedAt : new Date(),
+                            deletedBy : role   
+                        }, {
+                            where: {id : post_id}
+                        })
+                        
+                        const deleteComment = await comment.update({
+                            isDeleted : true,
+                            deletedAt : new Date(),
+                            deletedBy : role
+                        }, {
+                            where : {post_id : post_id}
+                        })
+    
+                        const deletedPost = await postModel.findOne({where : {id : post_id}})
                         res.status(200).json({
-                            message: 'POST DELETED SUCESSFULLY'
+                            message: 'POST DELETED SUCESSFULLY',
+                            deletedPost : deletedPost
                         })
                     }
                 } else {
@@ -281,3 +195,131 @@ exports.deletePost = async (req, res) => {
         })
     }
 }
+
+exports.showAllPosts = async (req, res) => {
+    try {
+        const allData = await postModel.findAll({
+            where: {
+                isDeleted: false
+            },
+            include: [{
+                model: comment, as: 'commentDetails',
+                attributes: {
+                    exclude: [
+                        'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt'
+                    ]
+                }
+            }],
+            attributes: {
+                exclude: [
+                    'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt', 'user_id'
+                ]
+            }
+        });
+        if (allData.length == 0) {
+            return res.status(404).json({
+                message: 'Bad Request',
+                error: 'NO DATA AVAILABLE'
+            })
+        }
+        if (allData) {
+            return res.status(200).json(allData)
+        }
+    } catch (error) {
+        res.status(300).json({
+            error: '404',
+            message: "Bad Request"
+        })
+    }
+}
+
+exports.showUsersAllPosts = async (req, res) => {
+    try {
+        const allData = await postModel.findAll({
+            where: {
+                user_id: req.user.id,
+                isDeleted: false
+            },
+            include: [{
+                model: comment, as: 'commentDetails',
+                where : {
+                    isDeleted : false
+                },
+                required : false,
+                attributes: {
+                    exclude: [
+                        'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt'
+                    ]
+                }
+            }],
+            attributes: {
+                exclude: [
+                    'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt', 'user_id'
+                ]
+            }
+        });
+        if (allData.length == 0) {
+            res.status(404).json({
+                message: 'Bad Request',
+                error: 'USER HAS NOT CREATED ANY POST!'
+            })
+        }
+        if (allData) {
+            res.status(200).json(allData)
+        }
+    } catch (error) {
+        res.status(300).json({
+            message: "Bad Request",
+            error: `Can't get users all posts!`
+        })
+    }
+}
+
+exports.getPostById = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const found = await postModel.findOne({
+            where: {
+                id: id
+            },
+            include: [{
+                model: comment, as: 'commentDetails',
+                where : {
+                    isDeleted : false
+                },
+                required : false,
+                attributes: {
+                    exclude: [
+                        'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt'
+                    ]
+                }
+            }]
+        })
+        // console.log(found);
+        if (found) {
+            if (found.isDeleted == 1) {
+                res.status(404).json({
+                    message: 'Bad Request',
+                    error: 'Post with given id is deleted!'
+                })
+            } else {
+                res.status(200).json(found)
+            }
+        } else {
+            console.log(found);
+            res.status(404).json({
+                message: 'Bad Request',
+                error: 'NO POST WITH GIVEN ID'
+            })
+        }
+    } catch (error) {
+        res.status(404).json({
+            message: 'Bad Request',
+            error: 'SOMETHING WENT WRONG!'
+        })
+    }
+}
+
+
+
+

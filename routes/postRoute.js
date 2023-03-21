@@ -7,17 +7,17 @@ const router = express.Router();
 
 router
 .route("/")
-.get(isAuth(['USER','ADMIN']), showAllPosts)
-.post(isAuth(['USER','ADMIN']), validatePost,createPost)
+.get(isAuth(['user','admin']), showAllPosts)
+.post(isAuth(['user','admin']), validatePost,createPost)
 
 router
 .route("/postbyid/:id")
-.get(isAuth(['USER','ADMIN']), getPostById)
-.put(isAuth(['USER','ADMIN']), validatePost, editPost)
-.delete(isAuth(['USER','ADMIN']), deletePost)
+.get(isAuth(['user','admin']), getPostById)
+.put(isAuth(['user','admin']), validatePost, editPost)
+.delete(isAuth(['user','admin']), deletePost)
 
 router
 .route("/myAllPosts")
-.get(isAuth(['USER','ADMIN']), showUsersAllPosts)
+.get(isAuth(['user','admin']), showUsersAllPosts)
 
 module.exports = router;

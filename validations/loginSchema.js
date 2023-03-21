@@ -12,7 +12,10 @@ User = Joi.object({
     .min(5)
     .max(20)
     .alphanum()
-    .required()
+    .required(),
+    role : Joi.string()
+    .optional()
+    .valid('user','admin')
 })
 
 module.exports = {User};

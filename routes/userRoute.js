@@ -1,5 +1,5 @@
 const express = require('express');
-const { signup, login } = require('../controllers/userController');
+const { signup, login, logout, assignAdmin } = require('../controllers/userController');
 const { isAuth } = require('../middlewares/isAuth');
 const { validateLogin } = require('../middlewares/loginCheck');
 const { validateUser } = require('../middlewares/signupCheck');
@@ -21,6 +21,14 @@ router
     res.send('THIS IS LOG-IN PAGE! PROVIDE YOUR EMAIL AND PASSWORD')
 })
 .post(validateLogin, login)
+
+router
+.route("/logout")
+.get(isAuth(['user', 'admin']), logout)
+
+router
+.route('/assignAdmin')
+.post(isAuth(['user','admin']), assignAdmin)
 
 module.exports = router
 
