@@ -18,14 +18,12 @@ exports.cookieExtractor = (req) => {
 exports.isAuth = (roles) => {
     try {
         return (req, res ,next) => {
-            // console.log('hey');
             passport.authenticate('jwt',{session : false}, (err, user) => {
                 if(err){
                     res.status(404).json({
                         error : '404',
-                        message : 'User Not Authorized!'
+                        message : 'Token either expired or not valid!'
                     })
-                    
                 }else{
                     if(roles.includes(user.role)){
                         req.user = user;

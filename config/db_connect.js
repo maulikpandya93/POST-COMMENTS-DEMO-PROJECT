@@ -5,5 +5,5 @@ const sequelize = new Sequelize('mynewdb', 'root', 'root', {
     logging : false
 })
 
-sequelize.sync({force : true});
+sequelize.sync();
 module.exports = {sequelize}

@@ -137,7 +137,6 @@ exports.assignAdmin = async (req, res) => {
                 message : 'USER NOT FOUND WITH GIVEN ID!'
             })
         }
-        res.status(200).json(findUser);
     }else{
         res.status(404).json({
             error : '404',
