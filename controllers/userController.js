@@ -14,7 +14,7 @@ exports.signup = async (req, res) => {
                 }
             })    
             if (isExists) {
-                res.status(404).json({
+                res.status(400).json({
                     message : 'Bad Request',
                     error : 'User Already Exists'
                 })
@@ -29,7 +29,7 @@ exports.signup = async (req, res) => {
             }
         })
         if (isExists) {
-            res.status(404).json({
+            res.status(400).json({
                 message : 'Bad Request',
                 error : 'User Already Exists'
             })
@@ -46,15 +46,15 @@ exports.signup = async (req, res) => {
                     message : 'SUCCESSFULLY REGISTERED!'
                 })
             }else{
-                res.status(404).json({
-                    message : 'Bad Request',
+                res.status(400).json({
+                    message : 'Not Registered',
                     error : 'UNFORTUNATELY NOT REGISTERED!'
                 })
             }
         }
     } catch (error) {
         // console.log(error);
-        res.status(404).send('SOMETHNG WENT WRONG!')
+        res.status(400).send('SOMETHNG WENT WRONG!')
     }
 }
 
@@ -88,13 +88,13 @@ exports.login = async (req, res) => {
                     "Logged in as" : findData.role
                 })
             }else{
-                res.status(404).send('PASSWORD DOES NOT MATCH!')
+                res.status(400).send('PASSWORD DOES NOT MATCH!')
             }
         }else{
             res.status(404).send('USER NOT EXISTS!')
         }
     } catch (error) {
-        res.status(404).send('SOMETHING WENT WRONG!')
+        res.status(400).send('SOMETHING WENT WRONG!')
     }
 }
 
@@ -106,8 +106,8 @@ exports.logout = async (req, res) => {
         message : 'LOGGED OUT SUCCESSFULLY!'
     })    
     } catch (error) {
-      res.status(404).json({
-        error : '404',
+      res.status(400).json({
+        error : '400',
         message : 'Theres some error in logging out!'
       })  
     }
@@ -138,8 +138,8 @@ exports.assignAdmin = async (req, res) => {
             })
         }
     }else{
-        res.status(404).json({
-            error : '404',
+        res.status(401).json({
+            error : 'Unauthorized',
             message : 'YOU HAVE TO BE ADMIN FIRST TO CHANGE THE ROLE!'
         })
     }

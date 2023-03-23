@@ -25,7 +25,7 @@ exports.createComment = async (req, res) => {
                     comment: createdComment
                 })
             } else {
-                res.status(404).json({
+                res.status(400).json({
                     message: 'Bad Request!',
                     error: 'Comment Not Created'
                 })
@@ -38,7 +38,7 @@ exports.createComment = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(404).json({
+        res.status(400).json({
             message: 'Bad Request',
             error: 'Something Went Wrong'
         })
@@ -50,7 +50,7 @@ exports.editComment = async (req, res) => {
     try {
         const { comment_id, post_id } = req.query;
 
-        if (!post_id) res.status(404).json({ message: 'Porvide Post Id also!!' })
+        if (!post_id) res.status(400).json({ message: 'Porvide Post Id also!!' })
 
         const role = req.user.role;
         
@@ -73,7 +73,7 @@ exports.editComment = async (req, res) => {
                             updatedComment: findUpdatedComment
                         })
                     } else {
-                        res.status(404).json({
+                        res.status(400).json({
                             message: 'Bad Request!',
                             error: 'Comment Not Updated'
                         })
@@ -95,33 +95,33 @@ exports.editComment = async (req, res) => {
                                 updatedComment: findComment
                             })
                         } else {
-                            res.status(404).json({
+                            res.status(400).json({
                                 message: 'Bad Request!',
                                 error: 'Comment not updated'
                             })
                         }
                     } else {
-                        res.status(404).json({
-                            message: 'Bad Request!',
+                        res.status(401).json({
+                            message: 'Unauthorized!',
                             error: 'Only admin and user who created comment can edit comments'
                         })
                     }
                 }
             } else {
                 res.status(404).json({
-                    message: 'Bad Request!',
+                    message: 'Not Found!',
                     error: 'Comment Not Found With Given Id'
                 })
             }
         } else {
             res.status(404).json({
-                error: 'Bad Request',
+                error: 'Not Found',
                 message: 'Post with given id not found!'
             })
         }
     } catch (error) {
-        res.status(404).json({
-            error: '404',
+        res.status(400).json({
+            error: '400',
             message: 'Something went wrong!'
         })
     }
@@ -159,27 +159,27 @@ exports.deleteComment = async (req, res) => {
                             deletedComment: findComment
                         })
                     } else {
-                        res.status(404).json({
-                            error: 'Bad Request',
+                        res.status(401).json({
+                            error: 'Unauthprized',
                             message: 'Only user who uploaded post, user who commented and admin can delete comment!'
                         })
                     }
                 }
             } else {
-                res.status(404).json({
+                res.status(400).json({
                     error: 'Bad Request',
                     message: 'Commented Already Deleted!'
                 })
             }
         } else {
             res.status(404).json({
-                error: 'Bad Request',
+                error: 'Not Found',
                 message: 'Post with given id not found!'
             })
         }
     } catch (error) {
-        res.status(404).json({
-            error: '404',
+        res.status(400).json({
+            error: '400',
             message: 'Bad Request!'
         })
     }
@@ -203,20 +203,20 @@ exports.getCommentById = async (req, res) => {
                     comment: findComment
                 })
             } else {
-                res.status(404).json({
+                res.status(400).json({
                     error: 'Bad Request!',
                     message: 'No Comment With Given Id On Post'
                 })
             }
         }else{
             res.status(404).json({
-                error : 'Bad Request!',
+                error : 'Not Found!',
                 message : 'Post Not Found'
             })
         }
     } catch (error) {
-        res.status(404).json({
-            error : '404',
+        res.status(400).json({
+            error : '400',
             message : 'Something Went Wrong!'
         })
     }

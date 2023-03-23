@@ -1,5 +1,7 @@
 const postModel = require("../models/postModel")
 const comment = require("../models/commentModel");
+const { sequelize, QueryTypes } = require("../config/db_connect");
+
 
 
 exports.createPost = async (req, res) => {
@@ -38,7 +40,7 @@ exports.editPost = async (req, res) => {
         const id = req.params.id;
         const { role } = req.user
         // const role = req.user.role
-        const found = await postModel.findOne({ where: { id: id } })
+        const found = await postModel.findOne({ where: { id: id, isDeleted : false } })
         if (found) {
             if (role == 'admin') {
                 const updatedPost = await postModel.update(req.body, {
@@ -51,7 +53,7 @@ exports.editPost = async (req, res) => {
                         updatedPost: findUpdatedPost
                     })
                 } else {
-                    res.status(404).json({
+                    res.status(400).json({
                         message: 'POST NOT UPDATED'
                     })
                 }
@@ -70,26 +72,26 @@ exports.editPost = async (req, res) => {
                             updatedPost: findUpdatedPost
                         })
                     } else {
-                        res.status(404).json({
+                        res.status(400).json({
                             message: 'POST NOT UPDATED'
                         })
                     }
                 } else {
-                    res.status(404).json({
-                        message: 'Bad Request',
+                    res.status(401).json({
+                        message: 'Unauthorized',
                         error: `USER CAN'T EDIT ANOTHER USER'S POST`
                     })
                 }
             }
         } else {
             res.status(404).json({
-                message: 'Bad Request',
+                message: 'Not Found',
                 error: 'POST NOT FOUND WITH GIVEN ID'
             })
         }
     } catch (error) {
         // console.log(error);
-        res.status(404).json({
+        res.status(400).json({
             message: 'Bad Request',
             error: 'Something Went Wrong!'
         })
@@ -104,7 +106,8 @@ exports.deletePost = async (req, res) => {
         const post_id = req.params.id
         const foundPost = await postModel.findOne({
             where: {
-                id: post_id
+                id: post_id,
+                isDeleted : false
             },
             include: [{
                 model: comment, as: 'commentDetails',
@@ -118,7 +121,7 @@ exports.deletePost = async (req, res) => {
         if (foundPost) {
             if (role == 'admin') {
                 if (foundPost.isDeleted == 1) {
-                    res.status(404).json({
+                    res.status(400).json({
                         message: 'Bad Request',
                         error: 'Post is already deleted!'
                     })
@@ -150,7 +153,7 @@ exports.deletePost = async (req, res) => {
                 if (foundPost.user_id == id) {
 
                     if (foundPost.isDeleted == 1) {
-                        res.status(404).json({
+                        res.status(400).json({
                             message: 'Bad Request',
                             error: 'Post is already deleted!'
                         })
@@ -178,19 +181,19 @@ exports.deletePost = async (req, res) => {
                         })
                     }
                 } else {
-                    res.status(404).json({
+                    res.status(401).json({
                         message: `USER CAN'T DELETE ANOTHER USER'S POST!`
                     })
                 }
             }
         } else {
             res.status(404).json({
-                message: 'Bad Request',
+                message: 'Not Found',
                 error: 'Post not found with given id'
             })
         }
     } catch (error) {
-        res.status(404).json({
+        res.status(400).json({
             message: 'SOMETHING WENT WRONG!'
         })
     }
@@ -208,7 +211,8 @@ exports.showAllPosts = async (req, res) => {
                     exclude: [
                         'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt'
                     ]
-                }
+                },
+                // required : true,
             }],
             attributes: {
                 exclude: [
@@ -216,9 +220,13 @@ exports.showAllPosts = async (req, res) => {
                 ]
             }
         });
+        // const allData = await sequelize.query(`SELECT posts.id, posts.title, posts.caption, posts.user_id, comments.comment, comments.post_id, comments.user_id
+        //     FROM mynewdb.posts
+        //     JOIN mynewdb.comments
+        //     ON posts.id = comments.post_id`, {type : sequelize.QueryTypes.SELECT});
         if (allData.length == 0) {
             return res.status(404).json({
-                message: 'Bad Request',
+                message: 'Not Found',
                 error: 'NO DATA AVAILABLE'
             })
         }
@@ -226,8 +234,8 @@ exports.showAllPosts = async (req, res) => {
             return res.status(200).json(allData)
         }
     } catch (error) {
-        res.status(300).json({
-            error: '404',
+        res.status(400).json({
+            error: '400',
             message: "Bad Request"
         })
     }
@@ -259,7 +267,7 @@ exports.showUsersAllPosts = async (req, res) => {
             }
         });
         if (allData.length == 0) {
-            res.status(404).json({
+            res.status(400).json({
                 message: 'Bad Request',
                 error: 'USER HAS NOT CREATED ANY POST!'
             })
@@ -268,7 +276,7 @@ exports.showUsersAllPosts = async (req, res) => {
             res.status(200).json(allData)
         }
     } catch (error) {
-        res.status(300).json({
+        res.status(400).json({
             message: "Bad Request",
             error: `Can't get users all posts!`
         })
@@ -299,7 +307,7 @@ exports.getPostById = async (req, res) => {
         if (found) {
             if (found.isDeleted == 1) {
                 res.status(404).json({
-                    message: 'Bad Request',
+                    message: 'Not Found',
                     error: 'Post with given id is deleted!'
                 })
             } else {
@@ -307,13 +315,13 @@ exports.getPostById = async (req, res) => {
             }
         } else {
             console.log(found);
-            res.status(404).json({
+            res.status(400).json({
                 message: 'Bad Request',
                 error: 'NO POST WITH GIVEN ID'
             })
         }
     } catch (error) {
-        res.status(404).json({
+        res.status(400).json({
             message: 'Bad Request',
             error: 'SOMETHING WENT WRONG!'
         })

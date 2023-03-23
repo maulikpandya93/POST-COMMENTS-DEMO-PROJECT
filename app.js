@@ -10,7 +10,7 @@ const passport = require('passport');
 const userModel = require('./models/userModel');
 
 
-const opts={
+const opts = {
     jwtFromRequest:cookieExtractor,
     secretOrKey:process.env.SECRET_KEY
 }
@@ -37,6 +37,7 @@ app.get('/*', (req, res) => {
         error : 'YOU MADE MISTAKE IN PATH OF URL'
     })
 })
+
 
 sequelize.authenticate().then(() => {
     console.log('DB CONNECTED!');
