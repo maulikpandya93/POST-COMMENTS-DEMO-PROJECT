@@ -207,12 +207,15 @@ exports.showAllPosts = async (req, res) => {
             },
             include: [{
                 model: comment, as: 'commentDetails',
+                where : {
+                    isDeleted : false
+                },
                 attributes: {
                     exclude: [
                         'createdAt', 'updatedAt', 'isDeleted', 'deletedBy', 'deletedAt'
                     ]
                 },
-                // required : true,
+                required : false,
             }],
             attributes: {
                 exclude: [
@@ -224,10 +227,11 @@ exports.showAllPosts = async (req, res) => {
         //     FROM mynewdb.posts
         //     JOIN mynewdb.comments
         //     ON posts.id = comments.post_id`, {type : sequelize.QueryTypes.SELECT});
+        console.log(allData);
         if (allData.length == 0) {
             return res.status(404).json({
-                message: 'Not Found',
-                error: 'NO DATA AVAILABLE'
+                status: 404,
+                message: 'NO DATA AVAILABLE'
             })
         }
         if (allData) {
@@ -303,7 +307,6 @@ exports.getPostById = async (req, res) => {
                 }
             }]
         })
-        // console.log(found);
         if (found) {
             if (found.isDeleted == 1) {
                 res.status(404).json({

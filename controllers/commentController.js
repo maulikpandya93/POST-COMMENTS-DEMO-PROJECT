@@ -38,9 +38,9 @@ exports.createComment = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(400).json({
-            message: 'Bad Request',
-            error: 'Something Went Wrong'
+        res.status(404).json({
+            status: 404,
+            message: 'No post found with given id'
         })
     }
 }
@@ -59,7 +59,7 @@ exports.editComment = async (req, res) => {
         if (findPost) {
             const findComment = await commentModel.findOne({ where: { id: comment_id,
                 isDeleted : false } })
-            if (findComment && findComment.isDeleted == false) {
+            if (findComment && findComment.post_id == findPost.id) {
                 if (role == 'admin') {
                     const updateComment = await commentModel.update(req.body, {
                         where: {
@@ -137,7 +137,7 @@ exports.deleteComment = async (req, res) => {
         if (findPost) {
             const findComment = await commentModel.findOne({ where: { id: comment_id,
                 isDeleted : false } })
-            if (findComment) {
+            if (findComment && findComment.post_id == findPost.id) {
                 if (role == 'admin') {
                     findComment.isDeleted = true;
                     findComment.deletedBy = role;
@@ -155,12 +155,12 @@ exports.deleteComment = async (req, res) => {
                         findComment.deletedAt = new Date();
                         await findComment.save();
                         res.status(200).json({
-                            message: 'Commente Deleted Successfully!',
+                            message: 'Comment Deleted Successfully!',
                             deletedComment: findComment
                         })
                     } else {
                         res.status(401).json({
-                            error: 'Unauthprized',
+                            error: 'Unauthorized',
                             message: 'Only user who uploaded post, user who commented and admin can delete comment!'
                         })
                     }
@@ -168,7 +168,7 @@ exports.deleteComment = async (req, res) => {
             } else {
                 res.status(400).json({
                     error: 'Bad Request',
-                    message: 'Commented Already Deleted!'
+                    message: 'No comment found!'
                 })
             }
         } else {

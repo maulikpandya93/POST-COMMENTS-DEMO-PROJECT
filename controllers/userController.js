@@ -54,7 +54,7 @@ exports.signup = async (req, res) => {
         }
     } catch (error) {
         // console.log(error);
-        res.status(400).send('SOMETHNG WENT WRONG!')
+        res.status(400).json({status : 400, message : 'Something went wrong!'})
     }
 }
 
@@ -84,14 +84,14 @@ exports.login = async (req, res) => {
                 const token = jwt.sign(pay_load, key)
                 res.cookie('authToken', token, {maxAge:3600 * 60 * 5, httpOnly:true});
                 res.status(200).json({
-                    message : 'LOGGED IN SUCCESSFULLY',
+                    message : `LOGGED IN SUCCESSFULLY | TOKEN DURATION - 5 MINS`,
                     "Logged in as" : findData.role
                 })
             }else{
-                res.status(400).send('PASSWORD DOES NOT MATCH!')
+                res.status(400).json({status : 404, message : 'PASSWORD DOES NOT MATCH'})
             }
         }else{
-            res.status(404).send('USER NOT EXISTS!')
+            res.status(404).json({status : 404, message : 'Either wrong credentials or user not exists!'})
         }
     } catch (error) {
         res.status(400).send('SOMETHING WENT WRONG!')
